@@ -1,19 +1,22 @@
 ﻿using Practice1;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
 CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
-double sigma = 0;
-double sigma_0 = 0;
-int reciverAmount = 0;
-int springAmount = 0;
-int[,] recivers;
-int[,] springs;
+double I;
+double sigma;
+double sigma_0;
+int reciverAmount;
+int springAmount;
+Line[] recivers;
+Line[] springs;
 
 
-FileReader.ReadData(out sigma, out sigma_0, out reciverAmount,
+FileReader.ReadData(out I, out sigma, out sigma_0, out reciverAmount,
                     out springAmount, out recivers, out springs);
 
+var A = new Matrix(springAmount, reciverAmount);
+var b = new Vector(springAmount);
 
-
-FileWriter.WriteData();
+FileWriter.WriteData(GaussNewtone.Solve(A, b, I, sigma, sigma_0, springs, recivers));

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Practice1
 {
    /// <summary>
-   /// Статический класс, чтения данных из файла
+   /// Статический класс чтения данных из файла
    /// </summary>
    public static class FileReader
    {
@@ -23,33 +23,26 @@ namespace Practice1
       /// <param name="_springsAmount">Количество источников</param>
       /// <param name="_recivers">Приемники</param>
       /// <param name="_springs">Источники</param>
-      public static void ReadData(out double _sigma, out double _sigma_0,
+      public static void ReadData(out double _I, out double _sigma, out double _sigma_0,
                                  out int _reciversAmount, out int _springsAmount,
-                                 out int[,] _recivers, out int[,] _springs)
+                                 out Line[] _recivers, out Line[] _springs)
       {
          string[] data;
 
          using var sr = new StreamReader(InputPath);
+         _I = double.Parse(sr.ReadLine());
          _sigma = double.Parse(sr.ReadLine());
          _sigma_0 = double.Parse(sr.ReadLine());
             
          _reciversAmount = int.Parse(sr.ReadLine());
-         _recivers = new int[_reciversAmount, 6];
+         _recivers = new Line[_reciversAmount];
          for (int i = 0; i < _reciversAmount; i++)
-         {
-            data = sr.ReadLine().Split(" ").ToArray();
-            for (int j = 0; j < 6; j++)
-               _recivers[i, j] = int.Parse(data[j]);
-         }
+            _recivers[i] = new Line(sr.ReadLine());
 
          _springsAmount = int.Parse(sr.ReadLine());
-         _springs = new int[_springsAmount, 6];
+         _springs = new Line[_springsAmount];
          for (int i = 0; i < _springsAmount; i++)
-         {
-            data = sr.ReadLine().Split(" ").ToArray();
-            for (int j = 0; j < 6; j++)
-               _springs[i, j] = int.Parse(data[j]);
-         }
+            _springs[i] = new Line(sr.ReadLine());
       }
    }
 }
