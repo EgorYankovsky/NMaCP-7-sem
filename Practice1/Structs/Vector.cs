@@ -26,6 +26,12 @@ namespace Practice1
          _values = new double[_size];
       }
 
+      // Удалить!
+      public Vector(double[] values)
+      {
+         _values = values;
+      }
+
       public double this[int i]
       {
          get => _values[i];

@@ -24,18 +24,68 @@ namespace Practice1
          _values = new double[_sizeI, _sizeJ];
       }
 
+      // Удалить!
+      public Matrix(double[,] values)
+      {
+         _values = values;
+      }
+
       public double this[int i, int j]
       {
          get => _values[i, j];
          set => _values[i, j] = value;
       }
 
-      /// <summary>
-      /// Генерация матрицы.
-      /// </summary>
-      internal void Generate()
+      public Vector GaussSolver(Vector v)
       {
-         // Code here.
+         try
+         {
+            // Прямой ход.
+            for (int row = 0; row < v.Size; row++)
+            {
+               for (int col = row; col < v.Size; col++)
+               {
+                  var k = _values[col, row];
+                  for (int i = row; i < v.Size; i++)
+                     _values[col, i] /= k;
+                  v[col] /= k;
+
+                  if (col != row)
+                  {
+                     for (int i = row; i < v.Size; i++)
+                        _values[col, i] -= _values[row, i];
+                     v[col] -= v[row];
+                  }
+               }
+            }
+
+            // Обратный ход.
+            for (int row = v.Size - 1; row > 0; row--)
+            {
+               for (int col = row; col > 0; col--)
+               {
+                  var k = -1.0 * _values[col - 1, row];
+
+                  for (int i = row; i < v.Size; i++)
+                     _values[row, i] *= k;
+                  v[row] *= k;
+
+                  for (int i = 0; i < v.Size; i++)
+                     _values[col - 1, i] += _values[row, i];
+                  v[col - 1] += v[row];
+
+                  for (int i = row; i < v.Size; i++)
+                     _values[row, i] /= k;
+                  v[row] /= k;
+
+               }
+            }
+         }
+         catch (Exception ex)
+         {
+            Console.WriteLine($"Ошибка во время решения СЛАУ: {ex.Message}");
+         }
+         return v;
       }
    }
 }

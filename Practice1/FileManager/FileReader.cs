@@ -23,17 +23,15 @@ namespace Practice1
       /// <param name="_springsAmount">Количество источников</param>
       /// <param name="_recivers">Приемники</param>
       /// <param name="_springs">Источники</param>
-      public static void ReadData(out double _I, out double _sigma, out double _sigma_0,
+      public static void ReadData(out double[] _realI, out double[] _psevdoI, out double _sigma,
                                  out int _reciversAmount, out int _springsAmount,
                                  out Line[] _recivers, out Line[] _springs)
       {
          string[] data;
 
          using var sr = new StreamReader(InputPath);
-         _I = double.Parse(sr.ReadLine());
          _sigma = double.Parse(sr.ReadLine());
-         _sigma_0 = double.Parse(sr.ReadLine());
-            
+
          _reciversAmount = int.Parse(sr.ReadLine());
          _recivers = new Line[_reciversAmount];
          for (int i = 0; i < _reciversAmount; i++)
@@ -43,6 +41,9 @@ namespace Practice1
          _springs = new Line[_springsAmount];
          for (int i = 0; i < _springsAmount; i++)
             _springs[i] = new Line(sr.ReadLine());
+
+         _realI = sr.ReadLine().Split().Select(double.Parse).ToArray();
+         _psevdoI = sr.ReadLine().Split().Select(double.Parse).ToArray();
       }
    }
 }
