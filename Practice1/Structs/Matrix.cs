@@ -38,52 +38,46 @@ namespace Practice1
 
       public Vector GaussSolver(Vector v)
       {
-         try
+
+         // Прямой ход.
+         for (int row = 0; row < v.Size; row++)
          {
-            // Прямой ход.
-            for (int row = 0; row < v.Size; row++)
+            for (int col = row; col < v.Size; col++)
             {
-               for (int col = row; col < v.Size; col++)
+               var k = _values[col, row];
+               for (int i = row; i < v.Size; i++)
+                  _values[col, i] /= k;
+               v[col] /= k;
+
+               if (col != row)
                {
-                  var k = _values[col, row];
                   for (int i = row; i < v.Size; i++)
-                     _values[col, i] /= k;
-                  v[col] /= k;
-
-                  if (col != row)
-                  {
-                     for (int i = row; i < v.Size; i++)
-                        _values[col, i] -= _values[row, i];
-                     v[col] -= v[row];
-                  }
-               }
-            }
-
-            // Обратный ход.
-            for (int row = v.Size - 1; row > 0; row--)
-            {
-               for (int col = row; col > 0; col--)
-               {
-                  var k = -1.0 * _values[col - 1, row];
-
-                  for (int i = row; i < v.Size; i++)
-                     _values[row, i] *= k;
-                  v[row] *= k;
-
-                  for (int i = 0; i < v.Size; i++)
-                     _values[col - 1, i] += _values[row, i];
-                  v[col - 1] += v[row];
-
-                  for (int i = row; i < v.Size; i++)
-                     _values[row, i] /= k;
-                  v[row] /= k;
-
+                     _values[col, i] -= _values[row, i];
+                  v[col] -= v[row];
                }
             }
          }
-         catch (Exception ex)
+
+         // Обратный ход.
+         for (int row = v.Size - 1; row > 0; row--)
          {
-            Console.WriteLine($"Ошибка во время решения СЛАУ: {ex.Message}");
+            for (int col = row; col > 0; col--)
+            {
+               var k = -1.0 * _values[col - 1, row];
+
+               for (int i = row; i < v.Size; i++)
+                  _values[row, i] *= k;
+               v[row] *= k;
+
+               for (int i = 0; i < v.Size; i++)
+                  _values[col - 1, i] += _values[row, i];
+               v[col - 1] += v[row];
+
+               for (int i = row; i < v.Size; i++)
+                  _values[row, i] /= k;
+               v[row] /= k;
+
+            }
          }
          return v;
       }

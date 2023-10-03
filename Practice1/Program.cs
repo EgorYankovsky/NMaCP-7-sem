@@ -16,7 +16,5 @@ Line[] springs;
 FileReader.ReadData(out realI, out psevdoI, out sigma, out reciverAmount,
                     out springAmount, out recivers, out springs);
 
-var A = new Matrix(springAmount, reciverAmount);
-var b = new Vector(springAmount);
 
-//FileWriter.WriteData(GaussNewtone.Solve(A, b, realI, psevdoI, sigma, springs, recivers));
+FileWriter.WriteData(GaussNewtone.Solve(realI, psevdoI, sigma, springs, recivers));
