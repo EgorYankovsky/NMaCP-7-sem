@@ -26,6 +26,12 @@ namespace Practice1
          _values = new double[_size];
       }
 
+      internal void Copy(Vector v)
+      {
+         for (int i = 0; i < v.Size; i++)
+            this[i] = v[i];
+      }
+
       // Удалить!
       public Vector(double[] values)
       {

@@ -14,6 +14,8 @@ namespace Practice1
       // Значения матрицы.
       private double[,] _values;
 
+      public int Size { get; set; }
+
       /// <summary>
       /// Конструктор матрицы.
       /// </summary>
@@ -21,65 +23,28 @@ namespace Practice1
       /// <param name="_sizeJ">Количество элементов по J.</param>
       public Matrix(int _sizeI, int _sizeJ)
       {
+         Size = _sizeI;
          _values = new double[_sizeI, _sizeJ];
       }
 
       // Удалить!
       public Matrix(double[,] values)
       {
+         Size = 3;
          _values = values;
+      }
+
+      internal void Copy(Matrix m)
+      {
+         for (int i = 0; i < m.Size; i++)
+            for (int j = 0; j < m.Size; j++)
+               this[i, j] = m[i, j];
       }
 
       public double this[int i, int j]
       {
          get => _values[i, j];
          set => _values[i, j] = value;
-      }
-
-      public Vector GaussSolver(Vector v)
-      {
-
-         // Прямой ход.
-         for (int row = 0; row < v.Size; row++)
-         {
-            for (int col = row; col < v.Size; col++)
-            {
-               var k = _values[col, row];
-               for (int i = row; i < v.Size; i++)
-                  _values[col, i] /= k;
-               v[col] /= k;
-
-               if (col != row)
-               {
-                  for (int i = row; i < v.Size; i++)
-                     _values[col, i] -= _values[row, i];
-                  v[col] -= v[row];
-               }
-            }
-         }
-
-         // Обратный ход.
-         for (int row = v.Size - 1; row > 0; row--)
-         {
-            for (int col = row; col > 0; col--)
-            {
-               var k = -1.0 * _values[col - 1, row];
-
-               for (int i = row; i < v.Size; i++)
-                  _values[row, i] *= k;
-               v[row] *= k;
-
-               for (int i = 0; i < v.Size; i++)
-                  _values[col - 1, i] += _values[row, i];
-               v[col - 1] += v[row];
-
-               for (int i = row; i < v.Size; i++)
-                  _values[row, i] /= k;
-               v[row] /= k;
-
-            }
-         }
-         return v;
       }
    }
 }

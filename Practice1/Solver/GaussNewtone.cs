@@ -60,6 +60,8 @@ namespace Practice1
          double[] _potentials = new double[_springs.Length];
          double[] _synthetic = new double[_recivers.Length];
 
+
+
          // Генерируем синтетические данные.
          for (int i = 0; i < _recivers.Length; i++)
          {
@@ -70,11 +72,9 @@ namespace Practice1
             _synthetic[i] *= 0.5 / (Math.PI * _sigma);
          }
 
-         // Матрица и вектор для решения СЛАУ.
-         var _M = new Matrix(_springs.Length, _recivers.Length);
-         var _V = new Vector(_springs.Length);
 
-         // Генерируем потенциальные данные.
+
+         // Генерируем потенциалы.
          for (int i = 0; i < _springs.Length; i++)
          {
             for (int j = 0; j < _recivers.Length; j++)
@@ -84,7 +84,18 @@ namespace Practice1
             _potentials[i] *= 0.5 / (Math.PI * _sigma);
          }
 
+
+
+
+
+
+
          // Генерация матрицы и вектора.
+
+         // Матрица и вектор для решения СЛАУ.
+         var _M = new Matrix(_springs.Length, _recivers.Length);
+         var _V = new Vector(_springs.Length);
+
          for (int q = 0; q < _recivers.Length; q++)
          {
             for (int s = 0; s < _springs.Length; s++)
@@ -93,10 +104,10 @@ namespace Practice1
                {
                   var w = 1.0 / _synthetic[i];
                   _M[q, s] += w * w *
-                      (1 / Distance(_recivers[q].A, _springs[i].B) - 1 / Distance(_recivers[q].A, _springs[i].A)
-                    - (1 / Distance(_recivers[q].B, _springs[i].B) - 1 / Distance(_recivers[q].B, _springs[i].A))
-                    * (1 / Distance(_recivers[s].A, _springs[i].B) - 1 / Distance(_recivers[s].A, _springs[i].A)
-                    - (1 / Distance(_recivers[s].B, _springs[i].B) - 1 / Distance(_recivers[s].B, _springs[i].A))));
+                      ((1 / Distance(_recivers[i].A, _springs[q].B) - 1 / Distance(_recivers[i].A, _springs[q].A)
+                    - (1 / Distance(_recivers[i].B, _springs[q].B) - 1 / Distance(_recivers[i].B, _springs[q].A)))
+                    * (1 / Distance(_recivers[i].A, _springs[s].B) - 1 / Distance(_recivers[i].A, _springs[s].A)
+                    - (1 / Distance(_recivers[i].B, _springs[s].B) - 1 / Distance(_recivers[i].B, _springs[s].A))));
                }
                _M[q, s] *= 0.25 * _PI_2 / (_sigma * _sigma);
             }
@@ -109,44 +120,69 @@ namespace Practice1
             {
                var w = 1.0 / _synthetic[i];
                _V[q] -= w * w *
-                   (1 / Distance(_recivers[q].A, _springs[i].B) - 1 / Distance(_recivers[q].A, _springs[i].A)
-                 - (1 / Distance(_recivers[q].B, _springs[i].B) - 1 / Distance(_recivers[q].B, _springs[i].A)))
+                   (1 / Distance(_recivers[i].A, _springs[q].B) - 1 / Distance(_recivers[i].A, _springs[q].A)
+                 - (1 / Distance(_recivers[i].B, _springs[q].B) - 1 / Distance(_recivers[i].B, _springs[q].A)))
                  * (_potentials[i] - _synthetic[i]);
             }
             _V[q] *= 0.5 / (Math.PI * _sigma);
          }
 
 
+
+
+         // Непросредственно решалка.
          int iter = 0;
-         double _reg = 1e-15;
-         double kek;
-         Console.WriteLine($" i {"сила тока 1", 25} {"сила тока 2",25} {"сила тока 3",25} {"значение функционала",25}");
+         double _reg = 1e-10;
+         double kek = Phi(_synthetic, _potentials);
+         Console.WriteLine($" i |{"сила тока 1", 25} |{"сила тока 2",25} |{"сила тока 3",25} |{"значение функционала",25}");
+         for (int i = 0; i < 110; i++)
+            Console.Write("-");
+         Console.WriteLine();
          do
          {
 
-            // Вычисляем значение функционала.
-            kek = Phi(_synthetic, _potentials);
-
             // Выводим на экран значения сил тока (из итерационного процесса) для каждого электорда и значение функционала.
-            Console.WriteLine($"{iter, 2} {_psevdoI[0], 25:E15} {_psevdoI[1], 25:E15} {_psevdoI[2], 25:E15} {kek, 25:E15}");
+            Console.WriteLine($"{iter, 2} |{_psevdoI[0], 25:E15} |{_psevdoI[1], 25:E15} |{_psevdoI[2], 25:E15} |{kek, 25:E15}");
 
-            x = _M.GaussSolver(_V);
+            Matrix __M = new(3, 3);
+            Vector __V = new(3);
+            __M.Copy(_M);
+            __V.Copy(_V);
 
-            for (int i = 0; i < _V.Size; i++)
+            x = Gauss.Solve(__M, __V);
+
+            while (x is null)
             {
-               _M[i, i] += _reg;
-               _V[i] -= _reg * (_synthetic[i] - _potentials[i]);
+               for (int i = 0; i < _V.Size; i++)
+               {
+                  __M[i, i] += _reg;
+                  __V[i] -= _reg * (_potentials[i] - _synthetic[i]);
+               }
+               x = Gauss.Solve(__M, __V);
+               _reg *= 2.0;
             }
-            _reg *= 2.0;
+
+            for (int i = 0; i < _springs.Length; i++)
+            {
+               _psevdoI[i] += x[i];
+               for (int j = 0; j < _recivers.Length; j++)
+                  _potentials[i] += _psevdoI[j] *
+                    (1.0 / Distance(_recivers[i].A, _springs[j].B) - 1.0 / Distance(_recivers[i].A, _springs[j].A)
+                  - (1.0 / Distance(_recivers[i].B, _springs[j].B) - 1.0 / Distance(_recivers[i].B, _springs[j].A)));
+               _potentials[i] *= 0.5 / (Math.PI * _sigma);
+            }
 
             iter++;
+
+            // Вычисляем значение функционала.
+            kek = Phi(_synthetic, _potentials);
          } while (kek >= _accuracy && iter < _maxIter);
-         
+
          for (int i = 0; i < _potentials.Length; i++)
             x[i] += _synthetic[i];
-         
          return x;
       }
+
    }
 }
 
