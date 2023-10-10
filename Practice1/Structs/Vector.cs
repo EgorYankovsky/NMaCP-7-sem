@@ -1,63 +1,56 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Practice1;
 
-namespace Practice1
+/// <summary>
+/// Класс, описывающий вектор.
+/// </summary>
+public class Vector
 {
+   // Значения вектора.
+   private double[] _values;
+
+   // Размер вектора.
+   public int Size => _values.Length;
+
    /// <summary>
-   /// Класс, описывающий вектор.
+   /// Конструктор вектора.
    /// </summary>
-   public class Vector
+   /// <param name="_size">Значение размера.</param>
+   public Vector(int _size)
    {
-      // Значения вектора.
-      private double[] _values;
+      _values = new double[_size];
+   }
 
-      // Размер вектора.
-      public int Size => _values.Length;
+   internal void Copy(Vector v)
+   {
+      for (int i = 0; i < v.Size; i++)
+         this[i] = v[i];
+   }
 
-      /// <summary>
-      /// Конструктор вектора.
-      /// </summary>
-      /// <param name="_size">Значение размера.</param>
-      public Vector(int _size)
-      {
-         _values = new double[_size];
-      }
+   // Удалить!
+   public Vector(double[] values)
+   {
+      _values = values;
+   }
 
-      internal void Copy(Vector v)
-      {
-         for (int i = 0; i < v.Size; i++)
-            this[i] = v[i];
-      }
+   public double this[int i]
+   {
+      get => _values[i];
+      set => _values[i] = value;
+   }
 
-      // Удалить!
-      public Vector(double[] values)
-      {
-         _values = values;
-      }
+   /// <summary>
+   /// Сгенерировать вектор.
+   /// </summary>
+   internal void Generate()
+   {
+      // Code here.
+   }
 
-      public double this[int i]
-      {
-         get => _values[i];
-         set => _values[i] = value;
-      }
-
-      /// <summary>
-      /// Сгенерировать вектор.
-      /// </summary>
-      internal void Generate()
-      {
-         // Code here.
-      }
-
-      public override string ToString()
-      {
-         string ans = "";
-         foreach (double v in _values)
-            ans += $"{v:E15}\n";
-         return ans;
-      }
+   public override string ToString()
+   {
+      string ans = "";
+      foreach (double v in _values)
+         ans += $"{v:E15}\n";
+      return ans;
    }
 }
