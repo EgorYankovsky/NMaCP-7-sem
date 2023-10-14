@@ -46,23 +46,12 @@ public static class GaussNewtone
    public static Vector Solve(double[] _realI, double[] _psevdoI, double _sigma,
       Line[] _springs, Line[] _recivers)
    {
-
+      // Решение.
       Vector? x;
 
+      // Потенциалы и синтетические данные.
       double[] _potentials = new double[_springs.Length];
       double[] _synthetic = new double[_recivers.Length];
-
-      /*
-       0.01 0.02 0.03   1 2 3
-      1.024230258950698E-004 1.024230258950698E-002
-      6.176015639157460E-006 6.176015639157460E-004
-      1.282876821829958E-006 1.282876821829957E-004
-
-      1.6701179E-002 4.3352308E-002 1.6783364E-002    0.15221832905648747
-      4.3352308E-002 5.0932939E-001 4.3339758E-002    1.1801100554819326
-      1.6783364E-002 4.3339758E-002 1.6866083E-002    0.152520519993216
-       */
-
 
       // Генерируем синтетические данные.
       for (int i = 0; i < _recivers.Length; i++)
@@ -71,10 +60,8 @@ public static class GaussNewtone
             _synthetic[i] += _realI[j] * 
                  (1.0 / Distance(_recivers[i].A, _springs[j].B) - 1.0 / Distance(_recivers[i].A, _springs[j].A)
                - (1.0 / Distance(_recivers[i].B, _springs[j].B) - 1.0 / Distance(_recivers[i].B, _springs[j].A)));
-         _synthetic[i] /= 2 * Math.PI * _sigma;
+         _synthetic[i] *= 1 / (2 * Math.PI * _sigma);
       }
-
-
 
       // Генерируем потенциалы.
       for (int i = 0; i < _recivers.Length; i++) 
@@ -83,18 +70,17 @@ public static class GaussNewtone
             _potentials[i] += _psevdoI[j] *
               (1.0 / Distance(_recivers[i].A, _springs[j].B) - 1.0 / Distance(_recivers[i].A, _springs[j].A)
             - (1.0 / Distance(_recivers[i].B, _springs[j].B) - 1.0 / Distance(_recivers[i].B, _springs[j].A)));
-         _potentials[i] *= 0.5 / (Math.PI * _sigma);
+         _potentials[i] /= 2 * Math.PI * _sigma;
       }
-
-
 
 
       // Генерация матрицы и вектора.
 
       // Матрица и вектор для решения СЛАУ.
-      var _M = new Matrix(_springs.Length, _recivers.Length);
+      var _M = new Matrix(_springs.Length, _springs.Length);
       var _V = new Vector(_springs.Length);
 
+      // Генерация матрицы.
       for (int q = 0; q < _recivers.Length; q++)
       {
          for (int s = 0; s < _springs.Length; s++)
@@ -103,16 +89,16 @@ public static class GaussNewtone
             {
                var w = 1.0 / _synthetic[i];
                _M[q, s] += w * w *
-                   ((1 / Distance(_recivers[i].A, _springs[q].B) - 1 / Distance(_recivers[i].A, _springs[q].A)
-                  - (1 / Distance(_recivers[i].B, _springs[q].B) - 1 / Distance(_recivers[i].B, _springs[q].A)))
-                  * (1 / Distance(_recivers[i].A, _springs[s].B) - 1 / Distance(_recivers[i].A, _springs[s].A)
-                  - (1 / Distance(_recivers[i].B, _springs[s].B) - 1 / Distance(_recivers[i].B, _springs[s].A))));
+                   ((1.0 / Distance(_recivers[i].A, _springs[q].B) - 1.0 / Distance(_recivers[i].A, _springs[q].A)
+                  - (1.0 / Distance(_recivers[i].B, _springs[q].B) - 1.0 / Distance(_recivers[i].B, _springs[q].A)))
+                  * (1.0 / Distance(_recivers[i].A, _springs[s].B) - 1.0 / Distance(_recivers[i].A, _springs[s].A)
+                  - (1.0 / Distance(_recivers[i].B, _springs[s].B) - 1.0 / Distance(_recivers[i].B, _springs[s].A))));
             }
-            _M[q, s] *= 0.25 / (Math.PI * Math.PI * _sigma * _sigma);
+            _M[q, s] *= 1.0 / (4 * Math.PI * Math.PI * _sigma * _sigma);
          }
       }
 
-
+      // Генерация вектора.
       for (int q = 0; q < _recivers.Length; q++)
       {
          for (int i = 0; i < _recivers.Length; i++)
@@ -127,11 +113,8 @@ public static class GaussNewtone
       }
 
 
-
-
       // Непросредственно решалка.
       int iter = 0;
-      double _reg = 1e-16;
       double kek = Phi(_synthetic, _potentials);
       Console.WriteLine($" i |{"сила тока 1", 25} |{"сила тока 2",25} |{"сила тока 3",25} |{"значение функционала",25}");
       for (int i = 0; i < 110; i++)
@@ -139,7 +122,7 @@ public static class GaussNewtone
       Console.WriteLine();
       do
       {
-
+         double _reg = 1e-16;
          // Выводим на экран значения сил тока (из итерационного процесса) для каждого электорда и значение функционала.
          Console.WriteLine($"{iter, 2} |{_psevdoI[0], 25:E15} |{_psevdoI[1], 25:E15} |{_psevdoI[2], 25:E15} |{kek, 25:E15}");
 
@@ -148,6 +131,7 @@ public static class GaussNewtone
          __M.Copy(_M);
          __V.Copy(_V);
 
+         // Решаем методом Гаусса.
          x = Gauss.Solve(__M, __V);
 
          // Регуляризация Тихонова.
@@ -156,26 +140,28 @@ public static class GaussNewtone
             for (int i = 0; i < _V.Size; i++)
             {
                __M[i, i] += _reg;
-               __V[i] -= _reg * (_potentials[i] - _synthetic[i]);
+               __V[i] -= _reg * (_psevdoI[i] - _realI[i]);
             }
             x = Gauss.Solve(__M, __V);
             _reg *= 2.0;
          }
-         _reg = 1e-16;
 
-         for (int i = 0; i < _springs.Length; i++)
+         // Перегенерация данных, после нахождения решения.
+         for (int i = 0; i < _recivers.Length; i++)
          {
             _psevdoI[i] += x[i];
-            for (int j = 0; j < _recivers.Length; j++)
+            _potentials[i] = 0;
+            for (int j = 0; j < _springs.Length; j++)
                _potentials[i] += _psevdoI[j] *
                  (1.0 / Distance(_recivers[i].A, _springs[j].B) - 1.0 / Distance(_recivers[i].A, _springs[j].A)
                - (1.0 / Distance(_recivers[i].B, _springs[j].B) - 1.0 / Distance(_recivers[i].B, _springs[j].A)));
-            _potentials[i] *= 0.5 / (Math.PI * _sigma);
+            _potentials[i] /= 2 * Math.PI * _sigma;
          }
 
          for (int q = 0; q < _recivers.Length; q++)
          {
-            for (int i = 0; i < _recivers.Length; i++)
+            _V[q] = 0;
+            for (int i = 0; i < _springs.Length; i++)
             {
                var w = 1.0 / _synthetic[i];
                _V[q] -= w * w *
@@ -186,17 +172,23 @@ public static class GaussNewtone
             _V[q] *= 0.5 / (Math.PI * _sigma);
          }
 
-
          iter++;
 
          // Вычисляем значение функционала.
          kek = Phi(_synthetic, _potentials);
       } while (kek >= _accuracy && iter < _maxIter);
 
+      Console.WriteLine("\n\n\nОтвет:");
+      Console.WriteLine($" i |{"сила тока 1", 25} |{"сила тока 2",25} |{"сила тока 3",25} |{"значение функционала",25}");
+      for (int i = 0; i < 110; i++)
+         Console.Write("-");
+            
+      Console.WriteLine($"\n{iter,2} |{_psevdoI[0],25:E15} |{_psevdoI[1],25:E15} |{_psevdoI[2],25:E15} |{kek,25:E15}");
+      Console.WriteLine($"\nXX |{Math.Abs(_psevdoI[0] - _realI[0]),25:E15} |{Math.Abs(_psevdoI[1] - _realI[1]),25:E15} |{Math.Abs(_psevdoI[2] - _realI[2]),25:E15} |{kek,25:E15}");
+
+
       for (int i = 0; i < _potentials.Length; i++)
          x[i] += _synthetic[i];
       return x;
    }
-
 }
-

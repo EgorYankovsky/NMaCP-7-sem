@@ -15,8 +15,11 @@ public static class Gauss
          for (int col = row; col < _b.Size; col++)
          {
             var k = _A[col, row];
-            
-            if (k == 0) return null;
+
+            if (k == 0)
+            {
+               return null;
+            }
             
             for (int i = row; i < _b.Size; i++)
                _A[col, i] /= k;

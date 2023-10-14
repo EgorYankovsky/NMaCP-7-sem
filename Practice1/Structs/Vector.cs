@@ -38,14 +38,6 @@ public class Vector
       set => _values[i] = value;
    }
 
-   /// <summary>
-   /// Сгенерировать вектор.
-   /// </summary>
-   internal void Generate()
-   {
-      // Code here.
-   }
-
    public override string ToString()
    {
       string ans = "";
